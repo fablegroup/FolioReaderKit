@@ -192,6 +192,10 @@ open class FolioReaderWebView: UIWebView {
         }
     }
     
+    @objc func shareHighlight(_ sender: UIMenuController?) {
+        
+    }
+    
     @objc func updateHighlightNote (_ sender: UIMenuController?) {
         guard let highlightId = js("getHighlightId()") else { return }
         guard let highlightNote = Highlight.getById(withConfiguration: readerConfig, highlightId: highlightId) else { return }
@@ -271,6 +275,7 @@ open class FolioReaderWebView: UIWebView {
 
         let highlightItem = UIMenuItem(title: self.readerConfig.localizedHighlightMenu, action: #selector(highlight(_:)))
         let highlightNoteItem = UIMenuItem(title: self.readerConfig.localizedHighlightNote, action: #selector(highlightWithNote(_:)))
+        let shareHighlightItem = UIMenuItem(title: "Share to Chat", action: #selector(shareHighlight(_:)))
         let editNoteItem = UIMenuItem(title: self.readerConfig.localizedHighlightNote, action: #selector(updateHighlightNote(_:)))
         let playAudioItem = UIMenuItem(title: self.readerConfig.localizedPlayMenu, action: #selector(play(_:)))
         let defineItem = UIMenuItem(title: self.readerConfig.localizedDefineMenu, action: #selector(define(_:)))
@@ -303,7 +308,7 @@ open class FolioReaderWebView: UIWebView {
 
         // menu on existing highlight
         if isShare {
-            menuItems = [colorsItem, editNoteItem, removeItem]
+            menuItems = [colorsItem, editNoteItem, removeItem, shareHighlightItem]
             
             if (self.readerConfig.allowSharing == true) {
                 menuItems.append(shareItem)

@@ -149,6 +149,16 @@ open class FolioReaderPage: UICollectionViewCell, UIWebViewDelegate, UIGestureRe
     }
 
     // MARK: - Highlights
+    
+    open func selectedHighlight() -> Highlight? {
+        guard let highlightId = webView?.js("getHighlightId()") else { return nil }
+        guard let highlight = Highlight.getById(withConfiguration: readerConfig, highlightId: highlightId) else { return nil }
+        return highlight
+    }
+    
+    open func highlight(_ sender: UIMenuController?) {
+        self.webView?.highlight(sender)
+    }
 
     fileprivate func htmlContentWithInsertHighlights(_ htmlContent: String) -> String {
         var tempHtmlContent = htmlContent as NSString
