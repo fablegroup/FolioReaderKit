@@ -186,23 +186,23 @@ class FolioReaderAddHighlightNote: UIViewController {
 extension FolioReaderAddHighlightNote: UITextViewDelegate {
     
     func textViewDidChange(_ textView: UITextView) {
-        let fixedWidth = textView.frame.size.width
+        /*let fixedWidth = textView.frame.size.width
         textView.sizeThatFits(CGSize(width: fixedWidth, height: CGFloat.greatestFiniteMagnitude))
         let newSize = textView.sizeThatFits(CGSize(width: fixedWidth, height: CGFloat.greatestFiniteMagnitude))
         var newFrame = textView.frame
         newFrame.size = CGSize(width: max(newSize.width, fixedWidth), height: newSize.height + 15)
-        textView.frame = newFrame;
+        textView.frame = newFrame;*/
     }
     
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-        textView.frame.size.height = textView.frame.height + 30
+        /*textView.frame.size.height = textView.frame.height + 30
 
         if resizedTextView {
             scrollView.scrollRectToVisible(textView.frame, animated: true)
         }
         else{
             resizedTextView = true
-        }
+        }*/
         
         return true
     }
