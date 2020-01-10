@@ -1262,14 +1262,14 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
 
         // If we're at the beginning of the chapter, assume positive direction
         if (scrollViewContentOffsetForDirection == 0.0) {
-             self.pageScrollDirection = .positive(withConfiguration: self.readerConfig, scrollType: scrollType)
+            if (isCurrentlyPositive == true) {
+                self.pageScrollDirection = .positive(withConfiguration: self.readerConfig, scrollType: scrollType)
+            } else {
+                self.pageScrollDirection = .negative(withConfiguration: self.readerConfig, scrollType: scrollType)
+            }
         } else if (scrollViewContentOffsetForDirection < pointNowForDirection) {
             self.pageScrollDirection = .negative(withConfiguration: self.readerConfig, scrollType: scrollType)
         } else if (scrollViewContentOffsetForDirection > pointNowForDirection) {
-            self.pageScrollDirection = .positive(withConfiguration: self.readerConfig, scrollType: scrollType)
-        } else if (isCurrentlyPositive == true) {
-            self.pageScrollDirection = .negative(withConfiguration: self.readerConfig, scrollType: scrollType)
-        } else {
             self.pageScrollDirection = .positive(withConfiguration: self.readerConfig, scrollType: scrollType)
         }
     }
