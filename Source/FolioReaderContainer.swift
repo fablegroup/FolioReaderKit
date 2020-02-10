@@ -174,7 +174,10 @@ open class FolioReaderContainer: UIViewController {
                 }
             } catch {
                 self.errorOnLoad = true
-                self.alert(message: error.localizedDescription)
+		    
+		DispatchQueue.main.async {
+                    self.alert(message: error.localizedDescription)
+		}
             }
         }
     }
