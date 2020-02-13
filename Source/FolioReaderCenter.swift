@@ -1260,13 +1260,16 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
         // The movement is either positive or negative. This happens if the page change isn't completed. Toggle to the other scroll direction then.
         let isCurrentlyPositive = (self.pageScrollDirection == .left || self.pageScrollDirection == .up)
 
-        if (scrollViewContentOffsetForDirection < pointNowForDirection) {
+        // If we're at the beginning of the chapter, assume positive direction
+        if (scrollViewContentOffsetForDirection == 0.0) {
+            if (isCurrentlyPositive == true) {
+                self.pageScrollDirection = .positive(withConfiguration: self.readerConfig, scrollType: scrollType)
+            } else {
+                self.pageScrollDirection = .negative(withConfiguration: self.readerConfig, scrollType: scrollType)
+            }
+        } else if (scrollViewContentOffsetForDirection < pointNowForDirection) {
             self.pageScrollDirection = .negative(withConfiguration: self.readerConfig, scrollType: scrollType)
         } else if (scrollViewContentOffsetForDirection > pointNowForDirection) {
-            self.pageScrollDirection = .positive(withConfiguration: self.readerConfig, scrollType: scrollType)
-        } else if (isCurrentlyPositive == true) {
-            self.pageScrollDirection = .negative(withConfiguration: self.readerConfig, scrollType: scrollType)
-        } else {
             self.pageScrollDirection = .positive(withConfiguration: self.readerConfig, scrollType: scrollType)
         }
     }
