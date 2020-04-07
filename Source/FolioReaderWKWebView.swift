@@ -38,7 +38,10 @@ class FolioReaderWKWebView: WKWebView {
     init(frame: CGRect, readerContainer: FolioReaderContainer) {
         self.readerContainer = readerContainer
         
-        super.init(frame: frame, configuration: WKWebViewConfiguration())
+        let configuration = WKWebViewConfiguration()
+        configuration.dataDetectorTypes = .link
+        
+        super.init(frame: frame, configuration: configuration)
     }
 
     required public init?(coder aDecoder: NSCoder) {

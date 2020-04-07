@@ -41,7 +41,7 @@ open class FolioReaderPage: UICollectionViewCell, UIWebViewDelegate, UIGestureRe
 
     /// The index of the current page. Note: The index start at 1!
     open var pageNumber: Int!
-    open var webView: FolioReaderWKWebView?
+    var webView: FolioReaderWKWebView?
 
     fileprivate var colorView: UIView!
     fileprivate var shouldShowBar = true
@@ -78,9 +78,8 @@ open class FolioReaderPage: UICollectionViewCell, UIWebViewDelegate, UIGestureRe
         guard let readerContainer = self.readerContainer else { return }
 
         if webView == nil {
-            webView = FolioReaderWebWKView(frame: webViewFrame(), readerContainer: readerContainer)
+            webView = FolioReaderWKWebView(frame: webViewFrame(), readerContainer: readerContainer)
             webView?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            webView?.dataDetectorTypes = .link
             webView?.scrollView.showsVerticalScrollIndicator = false
             webView?.scrollView.showsHorizontalScrollIndicator = false
             webView?.backgroundColor = .clear
@@ -541,12 +540,12 @@ open class FolioReaderPage: UICollectionViewCell, UIWebViewDelegate, UIGestureRe
     
     // MARK: - Public Java Script injection
     
-    /** 
+    /**
      Runs a JavaScript script and returns it result. The result of running the JavaScript script passed in the script parameter, or nil if the script fails.
      
      - returns: The result of running the JavaScript script passed in the script parameter, or nil if the script fails.
      */
-    open func performJavaScript(_ javaScriptCode: String) -> String? {
-        return webView?.js(javaScriptCode)
+    open func performJavaScript(_ javaScriptCode: String, completion: ((String?) -> Void)?) {
+        webView?.js(javaScriptCode, completion: completion)
     }
 }
