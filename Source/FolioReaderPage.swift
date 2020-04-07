@@ -41,7 +41,7 @@ open class FolioReaderPage: UICollectionViewCell, UIWebViewDelegate, UIGestureRe
 
     /// The index of the current page. Note: The index start at 1!
     open var pageNumber: Int!
-    open var webView: FolioReaderWebView?
+    open var webView: FolioReaderWKWebView?
 
     fileprivate var colorView: UIView!
     fileprivate var shouldShowBar = true
@@ -78,7 +78,7 @@ open class FolioReaderPage: UICollectionViewCell, UIWebViewDelegate, UIGestureRe
         guard let readerContainer = self.readerContainer else { return }
 
         if webView == nil {
-            webView = FolioReaderWebView(frame: webViewFrame(), readerContainer: readerContainer)
+            webView = FolioReaderWebWKView(frame: webViewFrame(), readerContainer: readerContainer)
             webView?.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             webView?.dataDetectorTypes = .link
             webView?.scrollView.showsVerticalScrollIndicator = false
@@ -200,7 +200,7 @@ open class FolioReaderPage: UICollectionViewCell, UIWebViewDelegate, UIGestureRe
     // MARK: - UIWebView Delegate
 
     open func webViewDidFinishLoad(_ webView: UIWebView) {
-        guard let webView = webView as? FolioReaderWebView else {
+        guard let webView = webView as? FolioReaderWKWebView else {
             return
         }
 
@@ -237,7 +237,7 @@ open class FolioReaderPage: UICollectionViewCell, UIWebViewDelegate, UIGestureRe
 
     open func webView(_ webView: UIWebView, shouldStartLoadWith request: URLRequest, navigationType: UIWebView.NavigationType) -> Bool {
         guard
-            let webView = webView as? FolioReaderWebView,
+            let webView = webView as? FolioReaderWKWebView,
             let scheme = request.url?.scheme else {
                 return true
         }
@@ -367,7 +367,7 @@ open class FolioReaderPage: UICollectionViewCell, UIWebViewDelegate, UIGestureRe
     // MARK: Gesture recognizer
 
     open func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        if gestureRecognizer.view is FolioReaderWebView {
+        if gestureRecognizer.view is FolioReaderWKWebView {
             if otherGestureRecognizer is UILongPressGestureRecognizer {
                 if UIMenuController.shared.isMenuVisible {
                     webView?.setMenuVisible(false)
