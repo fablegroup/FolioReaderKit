@@ -202,10 +202,6 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
         super.viewWillAppear(animated)
 
         configureNavBar()
-
-        // Update pages
-        pagesForCurrentPage(currentPage)
-        pageIndicatorView?.reloadView(updateShadow: true)
     }
 
     override open func viewDidLayoutSubviews() {
@@ -471,10 +467,11 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
         let jsFilePath = Bundle.frameworkBundle().path(forResource: "Bridge", ofType: "js")
         let cssFilePath = Bundle.frameworkBundle().path(forResource: "Style", ofType: "css")
         let cssTag = "<link rel=\"stylesheet\" type=\"text/css\" href=\"\(cssFilePath!)\">"
+        let viewportMetaTag = "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
         let jsTag = "<script type=\"text/javascript\" src=\"\(jsFilePath!)\"></script>" +
         "<script type=\"text/javascript\">setMediaOverlayStyleColors(\(mediaOverlayStyleColors))</script>"
 
-        let toInject = "\n\(cssTag)\n\(jsTag)\n</head>"
+        let toInject = "\n\(viewportMetaTag)\n\(cssTag)\n\(jsTag)\n</head>"
         html = html.replacingOccurrences(of: "</head>", with: toInject)
 
         // Font class name
@@ -490,6 +487,8 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
         classes += " \(folioReader.currentFontSize.cssIdentifier)"
 
         html = html.replacingOccurrences(of: "<html ", with: "<html class=\"\(classes)\"")
+        
+        html = html.replacingOccurrences(of: "<body(.*?)>([\\s\\S]*)</body>", with: "<body$1><div id=\"viewport\"><div id=\"page\"><div id=\"text-column\">$2</div></div></div></body>", options: [.regularExpression, .caseInsensitive], range: nil)
 
         // Let the delegate adjust the html string
         if let modifiedHtmlContent = self.delegate?.htmlContentForPage?(cell, htmlContent: html) {
@@ -572,7 +571,7 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
         }
 
         // Update pages
-        pagesForCurrentPage(currentPage)
+        configurePageIndicatorForPage(currentPage)
         currentPage.refreshPageMode()
 
         scrollScrubber?.setSliderVal()
@@ -649,30 +648,42 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
 
         scrollScrubber?.setSliderVal()
 
-        if let readingTime = currentPage.webView?.js("getReadingTime()") {
-            pageIndicatorView?.totalMinutes = Int(readingTime)!
-        } else {
-            pageIndicatorView?.totalMinutes = 0
-        }
-        pagesForCurrentPage(currentPage)
+        configurePageIndicatorForPage(currentPage)
 
         delegate?.pageDidAppear?(currentPage)
         delegate?.pageItemChanged?(self.getCurrentPageItemNumber())
         
         completion?()
     }
+    
+    func configurePageIndicatorForPage(_ page: FolioReaderPage?) {
+        guard let page = page, let webView = page.webView else {
+            return
+        }
 
-    func pagesForCurrentPage(_ page: FolioReaderPage?) {
-        guard let page = page, let webView = page.webView else { return }
-
-        let pageSize = self.readerConfig.isDirection(pageHeight, self.pageWidth, pageHeight)
-        let contentSize = page.webView?.scrollView.contentSize.forDirection(withConfiguration: self.readerConfig) ?? 0
-        self.pageIndicatorView?.totalPages = ((pageSize != 0) ? Int(ceil(contentSize / pageSize)) : 0)
-
-        let pageOffSet = self.readerConfig.isDirection(webView.scrollView.contentOffset.x, webView.scrollView.contentOffset.x, webView.scrollView.contentOffset.y)
-        let webViewPage = pageForOffset(pageOffSet, pageHeight: pageSize)
-
-        self.pageIndicatorView?.currentPage = webViewPage
+        let pageExtent = self.readerConfig.isDirection(self.pageHeight, self.pageWidth, self.pageHeight)
+        
+        webView.getContentDimensions { dimensions in
+            guard let dimensions = dimensions else {
+                return
+            }
+            
+            let totalPages = dimensions.pageCountUsingConfiguration(self.readerConfig)
+            self.pageIndicatorView?.totalPages = totalPages
+            
+            let pageOffset = self.readerConfig.isDirection(dimensions.scrollLeft, dimensions.scrollLeft, dimensions.scrollTop)
+            let pageCount = dimensions.pageNumberForOffset(pageOffset, usingConfiguration: self.readerConfig)
+            self.pageIndicatorView?.currentPage = pageCount
+        }
+        
+        page.webView?.js("getReadingTime()", completion: { readingTime in
+            guard let readingTime = readingTime as? String else {
+                self.pageIndicatorView?.totalMinutes = 0
+                return
+            }
+            
+            self.pageIndicatorView?.totalMinutes = Int(readingTime)!
+        })
     }
 
     func pageForOffset(_ offset: CGFloat, pageHeight height: CGFloat) -> Int {
@@ -1074,10 +1085,14 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
      */
     @objc func shareChapter(_ sender: UIBarButtonItem) {
         guard let currentPage = currentPage else { return }
-
-        if let chapterText = currentPage.webView?.js("getBodyText()") {
+        
+        currentPage.webView?.js("getBodyText()", completion: { chapterText in
+            guard let chapterText = chapterText as? String else {
+                return
+            }
+            
             let htmlText = chapterText.replacingOccurrences(of: "[\\n\\r]+", with: "<br />", options: .regularExpression)
-            var subject = readerConfig.localizedShareChapterSubject
+            var subject = self.readerConfig.localizedShareChapterSubject
             var html = ""
             var text = ""
             var bookTitle = ""
@@ -1092,7 +1107,7 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
             }
 
             // Get chapter name
-            if let chapter = getCurrentChapterName() {
+            if let chapter = self.getCurrentChapterName() {
                 chapterName = chapter
             }
 
@@ -1104,17 +1119,17 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
             // Sharing html and text
             html = "<html><body>"
             html += "<br /><hr> <p>\(htmlText)</p> <hr><br />"
-            html += "<center><p style=\"color:gray\">"+readerConfig.localizedShareAllExcerptsFrom+"</p>"
+            html += "<center><p style=\"color:gray\">" + self.readerConfig.localizedShareAllExcerptsFrom +  "</p>"
             html += "<b>\(bookTitle)</b><br />"
-            html += readerConfig.localizedShareBy+" <i>\(authorName)</i><br />"
+            html += self.readerConfig.localizedShareBy + " <i>\(authorName)</i><br />"
 
-            if let bookShareLink = readerConfig.localizedShareWebLink {
+            if let bookShareLink = self.readerConfig.localizedShareWebLink {
                 html += "<a href=\"\(bookShareLink.absoluteString)\">\(bookShareLink.absoluteString)</a>"
                 shareItems.append(bookShareLink as AnyObject)
             }
 
             html += "</center></body></html>"
-            text = "\(chapterName)\n\n“\(chapterText)” \n\n\(bookTitle) \n\(readerConfig.localizedShareBy) \(authorName)"
+            text = "\(chapterName)\n\n“\(chapterText)” \n\n\(bookTitle) \n\(self.readerConfig.localizedShareBy) \(authorName)"
 
             let act = FolioReaderSharingProvider(subject: subject, text: text, html: html)
             shareItems.insert(contentsOf: [act, "" as AnyObject], at: 0)
@@ -1127,8 +1142,8 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
                 actv.barButtonItem = sender
             }
 
-            present(activityViewController, animated: true, completion: nil)
-        }
+            self.present(activityViewController, animated: true, completion: nil)
+        })
     }
 
     /**
@@ -1419,8 +1434,13 @@ open class FolioReaderCenter: UIViewController, UICollectionViewDelegate, UIColl
 // MARK: FolioPageDelegate
 
 extension FolioReaderCenter: FolioReaderPageDelegate {
-
+    
     public func pageDidLoad(_ page: FolioReaderPage) {
+        // Pass the event to the centers `pageDelegate`
+        pageDelegate?.pageDidLoad?(page)
+    }
+
+    public func pageIsReady(_ page: FolioReaderPage) {
         if self.readerConfig.loadSavedPositionForCurrentBook, let position = folioReader.savedPositionForCurrentBook {
             let pageNumber = position["pageNumber"] as? Int
             let offset = self.readerConfig.isDirection(position["pageOffsetY"], position["pageOffsetX"], position["pageOffsetY"]) as? CGFloat
@@ -1452,8 +1472,12 @@ extension FolioReaderCenter: FolioReaderPageDelegate {
             page.webView?.scrollView.setContentOffset(offsetPoint, animated: false)
         }
         
+        // Update pages
+        configurePageIndicatorForPage(currentPage)
+        pageIndicatorView?.reloadView(updateShadow: true)
+        
         // Pass the event to the centers `pageDelegate`
-        pageDelegate?.pageDidLoad?(page)
+        pageDelegate?.pageIsReady?(page)
     }
     
     public func pageWillLoad(_ page: FolioReaderPage) {

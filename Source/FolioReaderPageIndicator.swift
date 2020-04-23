@@ -95,14 +95,15 @@ class FolioReaderPageIndicator: UIView {
             pagesLabel.text = " \(pagesRemaining) " + self.readerConfig.localizedReaderManyPagesLeft
         }
 
-        let minutesRemaining = Int(ceil(CGFloat((pagesRemaining * totalMinutes)/totalPages)))
+        // TODO: Restore this functionality. -- Buzz
+        /*let minutesRemaining = Int(ceil(CGFloat((pagesRemaining * totalMinutes)/totalPages)))
         if minutesRemaining > 1 {
             minutesLabel.text = "\(minutesRemaining) " + self.readerConfig.localizedReaderManyMinutes+" ·"
         } else if minutesRemaining == 1 {
             minutesLabel.text = self.readerConfig.localizedReaderOneMinute+" ·"
         } else {
             minutesLabel.text = self.readerConfig.localizedReaderLessThanOneMinute+" ·"
-        }
+        }*/
         
         reloadView(updateShadow: false)
     }

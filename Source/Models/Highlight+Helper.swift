@@ -289,15 +289,32 @@ extension Highlight {
     ///   - page: The page containing the HTML.
     ///   - highlightId: The ID to be removed
     /// - Returns: The removed id
-    @discardableResult public static func removeFromHTMLById(withinPage page: FolioReaderPage?, highlightId: String) -> String? {
-        guard let currentPage = page else { return nil }
-        
-        if let removedId = currentPage.webView?.js("removeHighlightById('\(highlightId)')") {
-            return removedId
-        } else {
-            print("Error removing Highlight from page")
-            return nil
+    public static func removeFromHTMLById(withinPage page: FolioReaderPage?, highlightId: String, completion: ((String?) -> Void)? = nil) {
+        guard let currentPageWebView = page?.webView else {
+            if let c = completion {
+                c(nil)
+            }
+            
+            return
         }
+        
+        currentPageWebView.js("removeHighlightById('\(highlightId)')") { removedId in
+            guard let removedId = removedId as? String else {
+                if let c = completion {
+                    c(nil)
+                }
+                
+                print("Error removing Highlight from page")
+
+                return
+            }
+            
+            if let c = completion {
+                c(removedId)
+            }
+        }
+        
+        // return removedId
     }
     
     /**

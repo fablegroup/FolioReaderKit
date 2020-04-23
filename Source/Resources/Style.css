@@ -1,11 +1,3 @@
-/**
- *  Style.css
- *  FolioReaderKit
- *
- *  Created by Heberti Almeida on 06/05/15.
- *  Copyright (c) 2015 Folio Reader. All rights reserved.
- */
-
 /* CSS Reset */
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -30,26 +22,50 @@ footer, header, hgroup, menu, nav, section {
     display: block;
 }
 
+::-webkit-scrollbar {
+    display: none;
+}
+
 /* ePUB */
 html {
     -webkit-text-size-adjust: none; /* Never autoresize text */
     padding: 0 0 !important;
-    overflow: hidden;
-}
-
-body {
-    padding: 40px 20px !important;
-    overflow: hidden !important;
 }
 
 * {
     page-break-before: initial !important; /* Reset page breaks to default */
 }
 
+#viewport {
+    width: 100vw;
+    height: 100vh;
+    -webkit-overflow: scroll;
+}
+
+#page {
+    -webkit-column-width: 100vw;
+    -webkit-column-gap: 0px;
+    
+    box-sizing: border-box;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+#text-column {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
 /* Custom padding for tablets */
 @media only screen and (min-device-width: 768px){
-    body {
-        padding: 60px 80px !important;
+    #page {
+        padding-top: 80px;
+        padding-bottom: 80px;
+    }
+    
+    #text-column {
+        padding-left: 60px;
+        padding-right: 60px;
     }
 }
 
@@ -131,8 +147,8 @@ a, h1, h2, h3, h4, h5, h6 {
 
 /* Begin Ted */
 img, svg, audio, video {
-    max-height: 95% !important;
-    max-width: 100% !important;
+    max-height: 90vh !important;
+    max-width: 90vw !important;
     box-sizing: border-box;
     object-fit: contain;
     page-break-inside: avoid;
@@ -146,7 +162,6 @@ div { max-width: 100%; }
 aside[epub|type~="footnote"] { display: none !important; }
 ruby > rt, ruby > rp { -webkit-user-select: none; }
 * { -webkit-font-smoothing: subpixel-antialiased }
-
 
 /*
  *
